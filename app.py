@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import json
 
 def main():
-    subprocess.call(["clear"], shell=True)
+    subprocess.call(["clear"])
     while True:
         try:
             current_directory = os.getcwd()
@@ -24,19 +24,28 @@ def process_cmd(cmd: str):
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
                 subprocess.call(["open", "index.html"])
+                exit()
             if not alcohol_check(cmd[0]):
                 subprocess.call(["open", "index.html"])
+                exit()
+            else:
+                subprocess.call(cmd)
         else:
-            subprocess.call(cmd, shell=True)
+            subprocess.call(cmd)
     except Exception as e:
         # 例外が発生したときにエラーメッセージを取得する
         error_message = str(e)
         print(error_message)
 
 def alcohol_check(command: str):
-    warning_data = read_json_file()
-    add_json_file(warning_data, command)
-    return False
+    while True:
+        flag = input("y/N? : ")
+        if flag == "y" or flag == "Y":
+            return True
+        elif flag == "N" or flag == "n":
+            warning_data = read_json_file()
+            add_json_file(warning_data, command)
+            return False
 
 def read_json_file() -> list[dict]:
     with open('logs.json', 'r') as file:
