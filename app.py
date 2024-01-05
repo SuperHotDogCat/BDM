@@ -4,6 +4,7 @@ import os
 import subprocess
 from datetime import datetime, timedelta
 import json
+import platform
 
 def main():
     subprocess.call(["clear"])
@@ -24,10 +25,16 @@ def process_cmd(cmd: str):
         if cmd[0] == "sudo" or cmd[0] == "git":
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
-                subprocess.call(["open", "index.html"])
+                try:
+                    subprocess.call(["open", "index.html"])
+                except:
+                    subprocess.call(["xdg-open", "index.html"])
                 exit()
             if not alcohol_check(cmd[0]):
-                subprocess.call(["open", "index.html"])
+                try:
+                    subprocess.call(["open", "index.html"])
+                except:
+                    subprocess.call(["xdg-open", "index.html"])
                 exit()
             else:
                 subprocess.call(cmd)
