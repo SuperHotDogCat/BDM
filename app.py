@@ -1,8 +1,11 @@
+from __future__ import annotations
 import re
 import os
 import subprocess
 from datetime import datetime, timedelta
 import json
+import serial
+from time import sleep, time
 
 def main():
     subprocess.call(["clear"])
@@ -23,10 +26,16 @@ def process_cmd(cmd: str):
         if cmd[0] == "sudo" or cmd[0] == "git":
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
-                subprocess.call(["open", "index.html"])
+                try:
+                    subprocess.call(["open", "index.html"])
+                except:
+                    subprocess.call(["xdg-open", "index.html"])
                 exit()
             if not alcohol_check(cmd[0]):
-                subprocess.call(["open", "index.html"])
+                try:
+                    subprocess.call(["open", "index.html"])
+                except:
+                    subprocess.call(["xdg-open", "index.html"])
                 exit()
             else:
                 subprocess.call(cmd)
@@ -38,14 +47,28 @@ def process_cmd(cmd: str):
         print(error_message)
 
 def alcohol_check(command: str):
-    while True:
-        flag = input("y/N? : ")
-        if flag == "y" or flag == "Y":
-            return True
-        elif flag == "N" or flag == "n":
-            warning_data = read_json_file()
-            add_json_file(warning_data, command)
-            return False
+    ser = serial.Serial('/dev/ttyACM0', 9600) #Aruduino Port
+    threshold: int = 600
+    FPS = 30
+    SECOND_PER_FRAME = 1 / FPS # 1フレームにかかる時間
+    SECOND = 5 #5秒間
+    ALCOHOL_FLAG = True
+    while SECOND > 0:
+        start_time = time()
+        data = int(ser.readline().decode("utf-8").strip().replace(" ", "").replace("A0:", ""))
+        if data >= threshold:
+            ALCOHOL_FLAG = False
+        end_time = time()
+        delta_time = end_time - start_time #経過時間
+        SECOND -= delta_time #経過時間を引く
+        sleep(max(0, SECOND_PER_FRAME - delta_time))
+        print(f"検査終了まで残り: {int(SECOND)} 秒")
+    if ALCOHOL_FLAG:
+        return True
+    elif not ALCOHOL_FLAG:
+        warning_data = read_json_file()
+        add_json_file(warning_data, command)
+        return False
 
 def read_json_file() -> list[dict]:
     with open('logs.json', 'r') as file:
