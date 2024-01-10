@@ -1,9 +1,9 @@
 let url = "./logs.json"
-let command = "";
+let command;
 let latest_time; //undefined
 await fetch(url)
    .then((response) => {
-       return response.json()　//ここでBodyからJSONを返す
+       return response.json(); //ここでBodyからJSONを返す
    })
    .then((result) => {
     const latestCommand = result.reduce((latest, current) => {
@@ -12,8 +12,8 @@ await fetch(url)
       
         return latestTime > currentTime ? latest : current;
       }, result[0]); 
-    command = latestCommand.command;
-    console.log(command)
+    command = latestCommand ? (latestCommand.command) : ("コード");
+    console.log(command);
    })
 let elem = document.getElementById("text");
 elem.textContent = `飲酒🍺${command}は`;
