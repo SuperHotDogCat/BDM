@@ -27,15 +27,15 @@ def process_cmd(cmd: str):
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
                 try:
-                    subprocess.call(["open", "index.html"])
+                    subprocess.call(["open", "https://superhotdogcat.github.io/BDM/"])
                 except:
-                    subprocess.call(["xdg-open", "index.html"])
+                    subprocess.call(["xdg-open", "https://superhotdogcat.github.io/BDM/"])
                 exit()
             if not alcohol_check(cmd[0]):
                 try:
-                    subprocess.call(["open", "index.html"])
+                    subprocess.call(["open", "https://superhotdogcat.github.io/BDM/"])
                 except:
-                    subprocess.call(["xdg-open", "index.html"])
+                    subprocess.call(["xdg-open", "https://superhotdogcat.github.io/BDM/"])
                 exit()
             else:
                 subprocess.call(cmd)
