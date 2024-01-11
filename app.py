@@ -6,9 +6,17 @@ from datetime import datetime, timedelta
 import json
 import serial
 from time import sleep, time
+import argparse
+
+def make_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-sp', '--server_pid', type = int,help="server_arg") 
+    args = parser.parse_args()   
+    return args
 
 def main():
     subprocess.call(["clear"])
+    args = make_args()
     while True:
         try:
             current_directory = os.getcwd()
@@ -16,30 +24,36 @@ def main():
             # 標準入力を受け取り空白で分割する
             cmd = input(f"{bottom_directory} % ")
             cmd = list(filter(lambda x: x != '', re.split(r'[ 　]+', cmd)))
-            process_cmd(cmd)
+            process_cmd(cmd, args)
         except EOFError:
             # Ctrl + D で終了
             break
 
-def process_cmd(cmd: str):
+def process_cmd(cmd: str, args):
     try:
-        if cmd[0] == "sudo" or cmd[0] == "git":
+        if len(cmd) == 0:
+            None
+        elif len(cmd) >= 1 and cmd[0] == "sudo" or cmd[0] == "git":
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
                 try:
-                    subprocess.call(["open", "index.html"])
+                    subprocess.call(["open", "http://localhost:10000"])
                 except:
-                    subprocess.call(["xdg-open", "index.html"])
+                    subprocess.call(["xdg-open", "http://localhost:10000"])
+                sleep(1)
+                subprocess.call(["kill", str(args.server_pid)])
                 exit()
             if not alcohol_check(cmd[0]):
                 try:
-                    subprocess.call(["open", "index.html"])
+                    subprocess.call(["open", "http://localhost:10000"])
                 except:
-                    subprocess.call(["xdg-open", "index.html"])
+                    subprocess.call(["xdg-open", "http://localhost:10000"])
+                subprocess.call(["kill", str(args.server_pid)])
+                sleep(1)
                 exit()
             else:
                 subprocess.call(cmd)
-        else:
+        elif len(cmd) >= 1:
             subprocess.call(cmd)
     except Exception as e:
         # 例外が発生したときにエラーメッセージを取得する
@@ -96,6 +110,9 @@ def previous_warning_check(command: str):
         current_time = datetime.now()
         if previous_command == command and current_time - previous_time < timedelta(hours=8):
             #まだアルコールが残っていると判定するため, Falseを返すことに
+            #データは追加
+            warning_data = read_json_file()
+            add_json_file(warning_data, command)
             return False
         if previous_command == command and current_time - previous_time >= timedelta(hours=8):
             #コマンドを実行しても良い
