@@ -6,9 +6,12 @@ from datetime import datetime, timedelta
 import json
 import serial
 from time import sleep, time
+import argparse
+
 
 def main():
     subprocess.call(["clear"])
+    subprocess.call(["echo","live serverがonになっていることを確認してください"])
     while True:
         try:
             current_directory = os.getcwd()
@@ -23,23 +26,27 @@ def main():
 
 def process_cmd(cmd: str):
     try:
-        if cmd[0] == "sudo" or cmd[0] == "git":
+        if len(cmd) == 0:
+            None
+        elif len(cmd) >= 1 and cmd[0] == "sudo" or cmd[0] == "git":
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
                 try:
-                    subprocess.call(["open", "index.html"])
+                    subprocess.call(["open", "http://127.0.0.1:5500/"])
                 except:
-                    subprocess.call(["xdg-open", "index.html"])
+                    subprocess.call(["xdg-open", "http://127.0.0.1:5500/"])
+                sleep(1)
                 exit()
             if not alcohol_check(cmd[0]):
                 try:
-                    subprocess.call(["open", "index.html"])
+                    subprocess.call(["open", "http://127.0.0.1:5500/"])
                 except:
-                    subprocess.call(["xdg-open", "index.html"])
+                    subprocess.call(["xdg-open", "http://127.0.0.1:5500/"])
+                sleep(1)
                 exit()
             else:
                 subprocess.call(cmd)
-        else:
+        elif len(cmd) >= 1:
             subprocess.call(cmd)
     except Exception as e:
         # 例外が発生したときにエラーメッセージを取得する
@@ -48,7 +55,7 @@ def process_cmd(cmd: str):
 
 def alcohol_check(command: str):
     ser = serial.Serial('/dev/ttyACM0', 9600) #Aruduino Port
-    threshold: int = 600
+    threshold: int = 332
     FPS = 30
     SECOND_PER_FRAME = 1 / FPS # 1フレームにかかる時間
     SECOND = 5 #5秒間
@@ -96,6 +103,9 @@ def previous_warning_check(command: str):
         current_time = datetime.now()
         if previous_command == command and current_time - previous_time < timedelta(hours=8):
             #まだアルコールが残っていると判定するため, Falseを返すことに
+            #データは追加
+            warning_data = read_json_file()
+            add_json_file(warning_data, command)
             return False
         if previous_command == command and current_time - previous_time >= timedelta(hours=8):
             #コマンドを実行しても良い
