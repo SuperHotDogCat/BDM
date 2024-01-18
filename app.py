@@ -8,15 +8,10 @@ import serial
 from time import sleep, time
 import argparse
 
-def make_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-sp', '--server_pid', type = int,help="server_arg") 
-    args = parser.parse_args()   
-    return args
 
 def main():
     subprocess.call(["clear"])
-    args = make_args()
+    subprocess.call(["echo","live serverがonになっていることを確認してください"])
     while True:
         try:
             current_directory = os.getcwd()
@@ -24,12 +19,12 @@ def main():
             # 標準入力を受け取り空白で分割する
             cmd = input(f"{bottom_directory} % ")
             cmd = list(filter(lambda x: x != '', re.split(r'[ 　]+', cmd)))
-            process_cmd(cmd, args)
+            process_cmd(cmd)
         except EOFError:
             # Ctrl + D で終了
             break
 
-def process_cmd(cmd: str, args):
+def process_cmd(cmd: str):
     try:
         if len(cmd) == 0:
             None
@@ -37,18 +32,16 @@ def process_cmd(cmd: str, args):
             if not previous_warning_check(cmd[0]):
                 #まだアルコールが残っている
                 try:
-                    subprocess.call(["open", "http://localhost:10000"])
+                    subprocess.call(["open", "http://127.0.0.1:5500/"])
                 except:
-                    subprocess.call(["xdg-open", "http://localhost:10000"])
+                    subprocess.call(["xdg-open", "http://127.0.0.1:5500/"])
                 sleep(1)
-                subprocess.call(["kill", str(args.server_pid)])
                 exit()
             if not alcohol_check(cmd[0]):
                 try:
-                    subprocess.call(["open", "http://localhost:10000"])
+                    subprocess.call(["open", "http://127.0.0.1:5500/"])
                 except:
-                    subprocess.call(["xdg-open", "http://localhost:10000"])
-                subprocess.call(["kill", str(args.server_pid)])
+                    subprocess.call(["xdg-open", "http://127.0.0.1:5500/"])
                 sleep(1)
                 exit()
             else:
@@ -62,7 +55,7 @@ def process_cmd(cmd: str, args):
 
 def alcohol_check(command: str):
     ser = serial.Serial('/dev/ttyACM0', 9600) #Aruduino Port
-    threshold: int = 600
+    threshold: int = 332
     FPS = 30
     SECOND_PER_FRAME = 1 / FPS # 1フレームにかかる時間
     SECOND = 5 #5秒間
